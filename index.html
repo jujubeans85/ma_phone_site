@@ -1,96 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en-AU">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>BEST MA IN THE WORLD</title>
-
-  <!-- Enable standalone (app-like) mode on iOS -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="MA Phone">
-
-  <!-- Icons for iOS and manifest for other platforms -->
+  <meta name="theme-color" content="#f7f6f0">
+  <title>MA Phone — BEST MA IN THE WORLD</title>
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="manifest.json">
-
-  <!-- Theme colors -->
-  <meta name="theme-color" content="#8CCFAF">
-  <meta name="background-color" content="#FFFFFF">
-
-  <style>
-    :root {
-      /* Pastel colours for each contact */
-      --adam-color: #A5D6A7;      /* soft green */
-      --chlo-color: #F8BBD0;     /* soft pink */
-      --mimi-color: #CE93D8;      /* soft purple */
-      --oli-color: #90CAF9;       /* soft blue */
-      --emergency-color: #EF5350; /* bright red */
-    }
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-                   Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      background: #FFFFFF;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-    .container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      width: 100%;
-      max-width: 500px;
-      padding: 20px;
-    }
-    a.button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      color: #FFFFFF;
-      font-size: 1.4em;
-      border-radius: 12px;
-      padding: 20px;
-      height: 80px;
-      transition: opacity 0.2s ease;
-    }
-    a.button:active {
-      opacity: 0.7;
-    }
-    /* Individual button colours */
-    #adam { background: var(--adam-color); }
-    #chloe { background: var(--chlo-color); }
-    #mimi { background: var(--mimi-color); }
-    #oli { background: var(--oli-color); }
-    /* Emergency button styling */
-    #emergency {
-      background: var(--emergency-color);
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      left: 20px;
-      max-width: 280px;
-      margin: 0 auto;
-      width: calc(100% - 40px);
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
-  <div class="container">
-    <!-- Replace +61000000000 with the actual phone numbers when deploying -->
-    <a href="tel:+61400782204" id="adam" class="button">CALL ADAM</a>
-    <a href="tel:+61404384862" id="chloe" class="button">CALL CHLO</a>
-    <a href="tel:+61452405051" id="mimi" class="button">CALL MIMI</a>
-    <a href="tel:+61406004604" id="oli" class="button">CALL OLI</a>
+  <div class="app">
+    <header class="topbar">
+      <div><p class="eyebrow">BEST MA IN THE WORLD</p><h1 id="screen-title" tabindex="-1">Main screen</h1><p id="page-count" class="page-count">1 of 3</p></div>
+      <button id="home" class="home" type="button" aria-label="Home — main screen"><span aria-hidden="true">⌂</span> HOME</button>
+    </header>
+    <main id="main" aria-labelledby="screen-title">
+      <p id="load-status" role="status">Opening Ma’s phone…</p>
+      <div id="tiles" class="tiles"></div>
+      <p id="screen-note" class="screen-note"></p>
+      <p id="connection" role="status" class="connection" hidden></p>
+    </main>
+    <footer class="footer"><button id="emergency" type="button" class="emergency"><span aria-hidden="true">✚</span> EMERGENCY 000</button></footer>
   </div>
-  <a href="tel:000" id="emergency" class="button">EMERGENCY 000</a>
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-description" hidden>
+    <div class="dialog">
+      <p id="dialog-kicker" class="eyebrow"></p><h2 id="dialog-title"></h2><p id="dialog-description"></p>
+      <div class="dialog-actions"><button id="cancel" type="button" class="cancel">GO BACK</button><a id="confirm" class="confirm" hidden></a></div>
+      <button id="dialog-home" type="button" class="dialog-home">HOME — MAIN SCREEN</button>
+    </div>
+  </div>
+  <noscript><p class="noscript">Ma’s launcher needs JavaScript. Use the native Phone app for calls and emergency access.</p></noscript>
 </body>
 </html>

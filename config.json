@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "contacts": [
+    {"id":"adam","label":"ADAM","phone":"+61400782204","verified":false,"verifiedOn":null,"photo":null,"color":"green"},
+    {"id":"chloe","label":"CHLO","phone":"+61404384862","verified":false,"verifiedOn":null,"photo":null,"color":"pink"},
+    {"id":"mimi","label":"MIMI","phone":"+61452405051","verified":false,"verifiedOn":null,"photo":null,"color":"purple"},
+    {"id":"oli","label":"OLI","phone":"+61406004604","verified":false,"verifiedOn":null,"photo":null,"color":"blue"}
+  ],
+  "screens": [
+    {"id":"radio","label":"Radio & TV","color":"yellow","items":[
+      {"id":"abc702","label":"ABC 702","url":null,"verified":false,"verifiedOn":null,"photo":null,"color":"yellow"},
+      {"id":"2gb","label":"2GB","url":null,"verified":false,"verifiedOn":null,"photo":null,"color":"blue"},
+      {"id":"tvguide","label":"TV GUIDE","url":null,"verified":false,"verifiedOn":null,"photo":null,"color":"purple"}
+    ]},
+    {"id":"more","label":"More","color":"peach","items":[
+      {"id":"magoogle1","label":"MA GOOGLE","url":null,"verified":false,"verifiedOn":null,"photo":null,"color":"green"},
+      {"id":"magoogle2","label":"MA GOOGLE","url":null,"verified":false,"verifiedOn":null,"photo":null,"color":"pink"}
+    ]}
+  ]
+}

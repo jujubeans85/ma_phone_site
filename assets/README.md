@@ -1,0 +1,1 @@
+Only add photographs that Ma and the helper recognise and approve for this repository's hosting audience. Set the confirmed local JPG, PNG or WebP path in config.json. Do not add generic or AI-generated substitutes for real contacts. See docs/CONFIGURATION.md.
