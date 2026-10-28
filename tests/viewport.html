@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Ma Phone — viewport QA</title>
+<style>body{font:16px system-ui;background:#e7e9e6;color:#172a29;margin:20px}label{display:inline-block;margin:8px 16px 16px 0}select,button{font:inherit;min-height:44px}iframe{border:2px solid #172a29;border-radius:20px;background:white;display:block}pre{white-space:pre-wrap;max-width:700px}header{max-width:1000px}</style>
+<header><h1>Ma Phone — browser QA</h1><p>Simulated CSS viewports. This does not emulate iOS safe areas, Safari or a real phone. Never activate CALL 000, YES CALL or YES OPEN.</p>
+<label>Viewport <select id="size"><option value="375,667">375 × 667 (SE)</option><option value="320,568">320 × 568 (small)</option><option value="375,548">375 × 548 (browser space)</option><option value="390,844">390 × 844</option><option value="430,932">430 × 932</option><option value="667,375">667 × 375 (landscape)</option></select></label>
+<label>Text <select id="text"><option value="100">100%</option><option value="200">200%</option></select></label>
+<label>Configuration <select id="mode"><option value="../../">Shipped (unverified)</option><option value="verified/">Verified fixture</option><option value="invalid/">Invalid fixture</option><option value="missing/">Missing fixture</option></select></label>
+<button id="inspect">Measure layout</button></header>
+<iframe id="phone" title="Simulated Ma Phone" src="../../" width="375" height="667"></iframe><pre id="report"></pre>
+<script>
+const phone=document.getElementById('phone'),size=document.getElementById('size'),text=document.getElementById('text'),mode=document.getElementById('mode');
+function resize(){const [w,h]=size.value.split(',');phone.width=w;phone.height=h;}
+function font(){phone.contentDocument.documentElement.style.fontSize=text.value+'%';}
+size.onchange=resize;text.onchange=font;mode.onchange=()=>phone.src=mode.value;phone.onload=font;
+document.getElementById('inspect').onclick=()=>{
+const d=phone.contentDocument,w=phone.contentWindow,rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};};
+const tiles=[...d.querySelectorAll('.tile')].map(e=>({label:e.getAttribute('aria-label'),...rect(e)}));
+const small=[...d.querySelectorAll('button,a[href]')].filter(e=>e.getClientRects().length).filter(e=>{const r=e.getBoundingClientRect();return r.width<44||r.height<44;}).map(e=>e.textContent);
+document.getElementById('report').textContent=JSON.stringify({viewport:[w.innerWidth,w.innerHeight],text:text.value+'%',horizontalOverflow:d.documentElement.scrollWidth>w.innerWidth,documentHeight:d.documentElement.scrollHeight,footer:rect(d.querySelector('.footer')),tiles,controlsUnder44:small},null,2);
+};resize();
+</script></html>
