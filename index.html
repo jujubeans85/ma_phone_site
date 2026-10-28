@@ -7,6 +7,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="MA Phone">
   <meta name="theme-color" content="#f7f6f0">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
   <title>MA Phone — BEST MA IN THE WORLD</title>
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="manifest.json">
@@ -25,6 +27,18 @@
       <p id="screen-note" class="screen-note"></p>
       <p id="connection" role="status" class="connection" hidden></p>
     </main>
+    <section id="helper-panel" class="helper-panel" hidden aria-labelledby="helper-title">
+      <h2 id="helper-title" tabindex="-1">Set up this device</h2>
+      <p>A trusted helper does this once. Ma does not need a password or login.</p>
+      <p>Choose the private JSON profile prepared from Ma’s checked contacts. It stays in this app’s browser storage. Clearing that storage or changing the site address needs setup again. Keep native Phone available.</p>
+      <label for="profile-file">Private profile file</label>
+      <input id="profile-file" type="file" accept="application/json,.json">
+      <label class="profile-check"><input id="profile-ack" type="checkbox"> I checked the destinations with Ma and kept a private backup.</label>
+      <button id="profile-save" type="button">SAVE ON THIS DEVICE</button>
+      <p id="profile-status" role="status"></p>
+      <p>Only import a profile from your trusted helper. To replace settings, import a checked replacement. To disable calls, import the public blank template.</p>
+    </section>
+    <button id="helper-open" class="helper-open" type="button">Helper setup</button>
     <footer class="footer"><button id="emergency" type="button" class="emergency"><span aria-hidden="true">✚</span> EMERGENCY 000</button></footer>
   </div>
   <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-description" hidden>

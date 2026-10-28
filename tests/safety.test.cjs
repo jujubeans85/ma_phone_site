@@ -2,11 +2,13 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const {COLORS,safePhoto,destination,validateConfig}=require('../app.js');
 const config=JSON.parse(fs.readFileSync(require.resolve('../config.json')));
 const clone=()=>JSON.parse(JSON.stringify(config));
-const verified={...config.contacts[0],verified:true,verifiedOn:'2000-01-01'};
-test('source contacts and colours survive exactly; no old destination is enabled by assumption',()=>{
+// Deliberately non-routable test number; never activate call links during QA.
+const verified={...config.contacts[0],phone:'+99900000001',verified:true,verifiedOn:'2000-01-01'};
+test('source contact labels and colours survive; archived numbers are redacted and no destination is enabled by assumption',()=>{
   const original=fs.readFileSync(require.resolve('../archive/index.original.html'),'utf8');
   assert.equal(config.contacts.length+config.screens.length,6);
-  for(const item of config.contacts){assert.ok(original.includes('tel:'+item.phone));assert.equal(destination(item,'contact'),null);}
+  for(const item of config.contacts){assert.ok(original.includes('CALL '+item.label));assert.equal(item.phone,null);assert.equal(destination(item,'contact'),null);}
+  assert.equal((original.match(/tel:REDACTED/g)||[]).length,4);
   assert.match(original,/tel:000/);
   assert.equal(COLORS.green,'#a5d6a7');assert.equal(COLORS.pink,'#f8bbd0');assert.equal(COLORS.purple,'#ce93d8');assert.equal(COLORS.blue,'#90caf9');
 });
@@ -24,7 +26,7 @@ test('bad shapes and duplicate IDs fail closed',()=>{
   assert.equal(validateConfig(config),config);
   for(const mutate of [c=>c.contacts.pop(),c=>c.screens.push(c.screens[0]),c=>c.contacts[0].id='home',c=>c.contacts[0].color='url(evil)',c=>c.contacts[0].label='',c=>c.screens[0].items[0].id='adam']){const c=clone();mutate(c);assert.throws(()=>validateConfig(c));}
 });
-function harness(data=config,ok=true){
+function harness(data=config,ok=true,storage={getItem(){return null;}}){
   let now=0;
   class Element{
     constructor(tag='div'){this.tag=tag;this.hidden=false;this.attrs={};this.dataset={};this.children=[];this.events={};this.style={setProperty(){}};this.isConnected=true;this.className='';}
@@ -34,10 +36,10 @@ function harness(data=config,ok=true){
     querySelectorAll(){return [els.cancel,els.confirm,els['dialog-home']].filter(e=>e.tag==='button'||e.hasAttribute('href'));}
     click(){const e={currentTarget:this,preventDefault(){this.defaultPrevented=true;},defaultPrevented:false};for(const f of this.events.click??[])f(e);return e;}
   }
-  const els=Object.fromEntries(['modal','screen-title','home','cancel','confirm','dialog-home','emergency','dialog-kicker','dialog-title','dialog-description','tiles','page-count','screen-note','connection','load-status'].map(id=>[id,new Element(['home','cancel','dialog-home','emergency'].includes(id)?'button':id==='confirm'?'a':'div')]));
+  const els=Object.fromEntries(['modal','screen-title','home','cancel','confirm','dialog-home','emergency','dialog-kicker','dialog-title','dialog-description','tiles','page-count','screen-note','connection','load-status','main','helper-panel','helper-title','helper-open','profile-file','profile-ack','profile-status','profile-save'].map(id=>[id,new Element(['home','cancel','dialog-home','emergency'].includes(id)?'button':id==='confirm'?'a':'div')]));
   els.modal.hidden=true;const app=new Element(),devents={},events={},timers=[];
   const doc={body:{style:{}},getElementById:id=>els[id],querySelector:()=>app,createElement:t=>new Element(t),addEventListener:(k,f)=>devents[k]=f,visibilityState:'visible',activeElement:null};
-  const root={document:doc,location:{hash:'',pathname:'/ma_phone_site/',search:''},history:{replaceState(a,b,url){root.location.hash=url.includes('#')?'#'+url.split('#')[1]:'';}},scrollTo(){},navigator:{onLine:true},addEventListener:(k,f)=>events[k]=f,setTimeout:f=>timers.push(f),fetch:async()=>({ok,json:async()=>data})};
+  const root={document:doc,location:{hash:'',pathname:'/ma_phone_site/',search:''},history:{replaceState(a,b,url){root.location.hash=url.includes('#')?'#'+url.split('#')[1]:'';}},scrollTo(){},navigator:{onLine:true},localStorage:storage,addEventListener:(k,f)=>events[k]=f,setTimeout:f=>timers.push(f),fetch:async()=>({ok,json:async()=>data})};
   vm.runInNewContext(fs.readFileSync(require.resolve('../app.js'),'utf8'),{window:root,URL,Date,performance:{now:()=>now},Set,console});
   return {els,app,doc,events,devents,root,timers,advance(ms=1000){now+=ms;},ready:()=>new Promise(setImmediate),tile:id=>els.tiles.children.find(e=>e.dataset.id===id)};
 }
@@ -69,4 +71,46 @@ test('text contrast passes AA and native zoom is allowed',()=>{
   const ink=lum('#172a29');for(const color of Object.values(COLORS))assert.ok((lum(color)+.05)/(ink+.05)>=4.5,color);
   assert.ok((1.05)/(lum('#ad242a')+.05)>=4.5);
   assert.doesNotMatch(fs.readFileSync(require.resolve('../index.html'),'utf8'),/user-scalable=no|maximum-scale=1/);
+});
+
+const {PROFILE_KEY,validateProfile,readProfile,saveProfile}=require('../app.js');
+function memoryStorage(initial=null){let raw=initial;return {getItem(){return raw;},setItem(k,v){raw=v;},removeItem(){raw=null;}};}
+test('private profile round trips without putting destinations into the public template',()=>{
+  const profile=clone();profile.contacts[0]=verified;
+  const storage=memoryStorage();saveProfile(storage,profile);
+  assert.deepEqual(readProfile(storage).config,profile);
+  assert.equal(readProfile(memoryStorage()).config,null);
+  assert.equal(config.contacts[0].phone,null);
+  for(const mutate of [c=>c.contacts[0].phone='000',c=>c.contacts[0].verified=true,c=>c.contacts[0].photo='assets/private.jpg',c=>c.screens[0].items[0].url='javascript:bad',c=>c.contacts[0].verified='true']){
+    const bad=clone();mutate(bad);assert.throws(()=>validateProfile(bad));
+  }
+});
+test('invalid or unavailable storage fails closed and failed replacement preserves prior settings',()=>{
+  for(const storage of [memoryStorage('{bad'),memoryStorage('{}'),{getItem(){throw new Error('blocked');}}])assert.deepEqual(readProfile(storage),{config:null,problem:true});
+  const previous=JSON.stringify(config),storage=memoryStorage(previous);
+  storage.setItem=()=>{throw new Error('quota');};assert.throws(()=>saveProfile(storage,{...config}));assert.equal(storage.getItem(PROFILE_KEY),previous);
+});
+test('runtime reads the device profile; corrupt storage leaves six safe tiles and emergency available',async()=>{
+  const profile=clone();profile.contacts[0]=verified;
+  const h=harness(config,true,memoryStorage(JSON.stringify(profile)));await h.ready();h.tile('adam').click();assert.equal(h.els.confirm.href,'tel:'+verified.phone);
+  const bad=harness(config,true,memoryStorage('{bad'));await bad.ready();assert.equal(bad.els.tiles.children.length,6);bad.tile('adam').click();assert.equal(bad.els.confirm.hasAttribute('href'),false);bad.els.cancel.click();bad.els.emergency.click();assert.equal(bad.els.confirm.href,'tel:000');
+});
+test('helper import requires acknowledgement, saves locally, and can disable destinations again',async()=>{
+  const storage=memoryStorage(),h=harness(config,true,storage);await h.ready();
+  h.els['helper-open'].click();assert.equal(h.els['helper-panel'].hidden,false);
+  const profile=clone();profile.contacts[0]=verified;
+  h.els['profile-file'].files=[{size:2000,text:async()=>JSON.stringify(profile)}];
+  h.devents.visibilitychange();h.events.pageshow();assert.equal(h.els['helper-panel'].hidden,false);assert.equal(h.els['profile-file'].files.length,1);
+  h.els['profile-save'].click();await h.ready();assert.equal(storage.getItem(PROFILE_KEY),null);
+  h.els['profile-ack'].checked=true;h.els['profile-save'].click();await h.ready();assert.match(h.els['profile-status'].textContent,/Saved on this device/);
+  h.els.home.click();h.tile('adam').click();assert.equal(h.els.confirm.href,'tel:'+verified.phone);h.els.cancel.click();
+  h.els['helper-open'].click();h.els['profile-file'].files=[{size:2000,text:async()=>JSON.stringify(config)}];h.els['profile-ack'].checked=true;h.els['profile-save'].click();await h.ready();
+  h.els.home.click();h.advance();h.tile('adam').click();assert.equal(h.els.confirm.hasAttribute('href'),false);
+});
+test('helper rejects unexpected layout and oversized or malformed files without replacing a profile',async()=>{
+  const storage=memoryStorage(),h=harness(config,true,storage);await h.ready();h.els['helper-open'].click();
+  const reordered=clone();reordered.contacts.reverse();
+  for(const file of [{size:70000,text:async()=>JSON.stringify(config)},{size:30,text:async()=>'{bad'},{size:2000,text:async()=>JSON.stringify(reordered)}]){
+    h.els['profile-file'].files=[file];h.els['profile-ack'].checked=true;h.els['profile-save'].click();await h.ready();assert.equal(storage.getItem(PROFILE_KEY),null);
+  }
 });

@@ -12,3 +12,4 @@
 @media(max-height:600px) and (orientation:portrait){.topbar .eyebrow{display:none}}
 .topbar{flex-wrap:wrap}.topbar>div{min-width:0;flex:1 1 130px}h1{overflow-wrap:anywhere}.tile{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}#main{container-type:inline-size}
 @container(max-width:12rem){.tiles{grid-template-columns:1fr}}
+.helper-open{display:block;min-height:44px;margin:12px auto 0;border:0;background:transparent;text-decoration:underline;font-size:.875rem}.helper-panel{line-height:1.5}.helper-panel label{display:block;margin:20px 0 10px}.helper-panel input[type="file"]{max-width:100%;min-height:48px;font:inherit}.profile-check{padding:12px;border:2px solid var(--line);border-radius:12px}.profile-check input{width:24px;height:24px;vertical-align:middle}.helper-panel button{width:100%;min-height:60px;padding:12px;border:2px solid var(--ink);border-radius:16px;background:#194c3b;color:white;font-weight:800}

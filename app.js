@@ -34,7 +34,37 @@
     });
     return config;
   }
-  if (typeof module !== 'undefined' && module.exports) module.exports = {COLORS,safePhoto,destination,validateConfig};
+  const PROFILE_KEY = 'ma-phone.private-profile.v1';
+  function validateProfile(data) {
+    validateConfig(data);
+    for (const item of [...data.contacts,...data.screens.flatMap(s=>s.items)]) {
+      const kind = data.contacts.includes(item) ? 'contact' : 'link';
+      if (typeof item.verified !== 'boolean' || (item.verified && !destination(item,kind))) throw new Error('Invalid verified destination.');
+      if (kind === 'contact' && item.phone !== null && !/^\+\d{8,15}$/.test(item.phone)) throw new Error('Invalid phone number.');
+      if (kind === 'link' && item.url !== null && !destination({...item,verified:true,verifiedOn:'2000-01-01'},'link')) throw new Error('Invalid website.');
+      if (item.photo !== null) throw new Error('Keep private photographs in the native Photos app.');
+    }
+    return data;
+  }
+  function readProfile(storage) {
+    try {
+      const raw = storage.getItem(PROFILE_KEY);
+      return {config:raw ? validateProfile(JSON.parse(raw)) : null,problem:false};
+    } catch (_) { return {config:null,problem:true}; }
+  }
+  function saveProfile(storage,data) {
+    const serialized = JSON.stringify(validateProfile(data));
+    const previous = storage.getItem(PROFILE_KEY);
+    try {
+      storage.setItem(PROFILE_KEY,serialized);
+      if (storage.getItem(PROFILE_KEY) !== serialized) throw new Error('Storage did not retain the profile.');
+    } catch (error) {
+      try { if(previous === null)storage.removeItem(PROFILE_KEY);else storage.setItem(PROFILE_KEY,previous); } catch (_) { /* Never activate an unsaved replacement. */ }
+      throw error;
+    }
+    return data;
+  }
+  if (typeof module !== 'undefined' && module.exports) module.exports = {COLORS,safePhoto,destination,validateConfig,PROFILE_KEY,validateProfile,readProfile,saveProfile};
   if (!root.document) return;
   const doc = root.document, $ = id => doc.getElementById(id);
   let config = null, screen = 'home', opener = null, armedAt = 0, launched = false, lastTap = -Infinity;
@@ -47,7 +77,7 @@
   }
   function goHome(focus = true) {
     const shouldFocus = focus || !modal.hidden;
-    closeDialog(false); screen = 'home';
+    closeDialog(false); $('helper-panel').hidden=true; $('main').hidden=false; screen = 'home';
     if (root.location.hash) root.history.replaceState(null,'',root.location.pathname + root.location.search);
     render(shouldFocus);
   }
@@ -102,9 +132,37 @@
     if (event.key === 'Escape') {event.preventDefault();closeDialog();}
     if (event.key === 'Tab') {const buttons=[...modal.querySelectorAll('button,a[href]')].filter(el=>!el.hidden),first=buttons[0],last=buttons[buttons.length-1];if(event.shiftKey && doc.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey && doc.activeElement===last){event.preventDefault();first.focus();}}
   });
-  root.addEventListener('hashchange',()=>goHome());root.addEventListener('popstate',()=>goHome());root.addEventListener('pageshow',()=>goHome(false));
-  doc.addEventListener('visibilitychange',()=>{if(doc.visibilityState==='visible')goHome(false);});
+  root.addEventListener('hashchange',()=>goHome());root.addEventListener('popstate',()=>goHome());
+  // Returning from the native file picker must not hide/reset an in-progress helper import.
+  root.addEventListener('pageshow',()=>{if($('helper-panel').hidden)goHome(false);});
+  doc.addEventListener('visibilitychange',()=>{if(doc.visibilityState==='visible' && $('helper-panel').hidden)goHome(false);});
   function connection() {$('connection').hidden=root.navigator.onLine;$('connection').textContent='No internet connection. Use the native Phone app for calls. Online buttons may not open.';}
   root.addEventListener('online',connection);root.addEventListener('offline',connection);connection();
-  root.fetch('config.json',{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('Configuration unavailable');return response.json();}).then(data=>{config=validateConfig(data);$('load-status').hidden=true;goHome(false);}).catch(()=>{$('load-status').textContent='Ma’s buttons could not load. Check the internet connection, then reopen MA Phone. Use the native Phone app for calls.';});
+  function storedProfile() {try{return readProfile(root.localStorage);}catch(_){return {config:null,problem:true};}}
+  function showHelper() {
+    closeDialog(false);$('main').hidden=true;$('helper-panel').hidden=false;title.textContent='Helper setup';
+    $('profile-file').value='';$('profile-ack').checked=false;$('profile-status').textContent='Import the verified private profile on this installed app. Nothing is uploaded.';
+    $('helper-title').focus();
+  }
+  $('helper-open').addEventListener('click',showHelper);
+  $('profile-save').addEventListener('click',async()=>{
+    const status=$('profile-status'),file=$('profile-file').files[0];
+    if(!file || !$('profile-ack').checked){status.textContent='Choose a profile and confirm you have checked the contacts.';return;}
+    if(file.size>65536){status.textContent='Profile is too large. No changes saved.';return;}
+    try{
+      const next=validateProfile(JSON.parse(await file.text()));
+      // Preserve the six familiar positions, including the two separate MA GOOGLE slots.
+      if(!config || JSON.stringify(next.contacts.map(i=>i.id))!==JSON.stringify(config.contacts.map(i=>i.id)) || JSON.stringify(next.screens.map(s=>[s.id,s.items.map(i=>i.id)]))!==JSON.stringify(config.screens.map(s=>[s.id,s.items.map(i=>i.id)])))throw new Error('Unexpected layout.');
+      saveProfile(root.localStorage,next);config=next;
+      $('profile-file').value='';$('profile-ack').checked=false;
+      status.textContent='Saved on this device. Tap HOME, then close and reopen this installed app to check the contacts persist.';
+      $('load-status').hidden=true;
+    }catch(_){status.textContent='Profile could not be saved. Check its format and browser storage. Previous settings remain active; use native Phone if needed.';}
+  });
+  root.fetch('config.json',{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('Configuration unavailable');return response.json();}).then(data=>{
+    const publicConfig=validateConfig(data),saved=storedProfile();config=saved.config || publicConfig;
+    $('load-status').hidden=!!saved.config;
+    $('load-status').textContent=saved.problem ? 'Private settings are unavailable. Ask your helper to restore them. Use the native Phone app for calls.' : 'Ask your helper to set up these buttons on this device. Use the native Phone app for calls.';
+    goHome(false);
+  }).catch(()=>{$('load-status').textContent='Ma’s buttons could not load. Check the internet connection, then reopen MA Phone. Use the native Phone app for calls.';});
 })(typeof window === 'undefined' ? globalThis : window);

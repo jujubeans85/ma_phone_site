@@ -1,3 +1,7 @@
 .openai/
 node_modules/
 dist/
+.netlify/
+private/
+.env*
+*.private.json

@@ -10,10 +10,10 @@ If a whole page disappears, first turn off the active Focus temporarily and chec
 
 ## Install one familiar launcher
 
-1. Finish the contact/URL checks in CONFIGURATION.md. Agree the six tile arrangement with Ma. Keep direct native Phone, Messages and torch access in familiar places; use Control Center/Lock Screen torch where already familiar. Keep native Emergency SOS and Medical ID available. Camera/Photos/Files stay native if Ma needs them; their website equivalents have not been invented.
-2. Deploy the reviewed normal `dist/` build to a stable HTTPS address through the chosen host. This branch is not evidence of a deployed website. Do not use the temporary development preview as an installed permanent address.
+1. Finish the contact/URL checks and prepare a private profile as described in CONFIGURATION.md. Agree the six tile arrangement with Ma. Keep direct native Phone, Messages and torch access in familiar places; use Control Center/Lock Screen torch where already familiar. Keep native Emergency SOS and Medical ID available. Camera/Photos/Files stay native if Ma needs them; their website equivalents have not been invented.
+2. Publish only the reviewed normal `dist/` build at the agreed permanent HTTPS origin, using PRIVACY_AND_HOSTING.md. `https://ma-phone-launcher.netlify.app` is the intended permanent origin in the newly created project, subject to first publication and live checks; creating a project is not deployment. The older callma/macallme sites remain unchanged. Do not use a temporary preview, deploy permalink or a different host to install the icon. A change of origin means a separate profile setup.
 3. On **Ma's phone**, open that exact address in Safari. Tap Share (or Page Menu > Share), then **Add to Home Screen**. Name it **MA Phone**. If offered, leave **Open as Web App** on, then Add. Open the new icon and check standalone display. [2]
-4. Put the one launcher icon in the agreed familiar position. Leave the working old icons available during a trial; photograph the final layout. Practise: open MA Phone, open each supplementary screen, tap HOME, cancel a mistaken call, make an ordinary verified call and reopen MA Phone. Do not test-call 000.
+4. **Open the installed MA Phone icon before importing contacts.** Tap Helper setup, choose the helper-held private profile, acknowledge verification and save. Tap HOME, close/reopen the installed app, then restart and recheck. Do not assume Safari and the installed app share storage. Stop if import or persistence fails; keep native calling and do not put the profile on the host. Then put the one launcher icon in the agreed familiar position. Leave the working old icons available during a trial; photograph the final layout. Practise: open MA Phone, open each supplementary screen, tap HOME, cancel a mistaken call, make an ordinary verified call and reopen MA Phone. Do not test-call 000.
 5. Once that trial succeeds, reduce surplus individual shortcuts with Ma's agreement. Keep the repository/config as the source of truth rather than maintaining multiple copied shortcuts.
 
 The website has fixed tile order and no edit controls. **It cannot stop native Home Screen pages or its own icon being moved, hidden or deleted.** HOME inside the website cannot overlay Phone/Safari; return using the MA Phone icon. Fresh loads need internet. Always retain independent native calling/emergency access.
@@ -36,12 +36,12 @@ For a supervised Guided Access trial only: Settings > Accessibility > Guided Acc
 
 ## Actual-phone acceptance — all still pending
 
-- Record model/iOS, exact deployed URL/version and date; check Wi-Fi and cellular load, safe areas, text size, pinch zoom and rotation.
+- Record model/iOS, exact deployed URL/version and date; verify profile import, app reopen and restart persistence; check Wi-Fi and cellular load, safe areas, text size, pinch zoom and rotation.
 - Ma recognises all six positions and the two supplementary screens; approved photographs and final labels match her expectations.
 - Confirm every enabled recipient/URL. Test ordinary outbound/inbound calls, cancel, hang up, Messages, native torch, Safari handoff and reopening MA Phone. No 000 test call.
 - Mistaps, rapid repeat taps, long-presses, scroll, back, app switching, lock/unlock, restart and reopening recover predictably. No native shortcut is removed before this passes.
 - Use VoiceOver on-device to check names/order, modal announcement, focus, dismissal and HOME. Browser accessibility-tree checks are not a VoiceOver certification.
-- With network unavailable, use native Phone/Messages and SOS independently. Don't rely on a website loading in an emergency.
+- Confirm native contact favourites remain available without this site. With network unavailable, use native Phone/Messages and SOS independently. Don't rely on a website loading in an emergency.
 - Practise hidden-page and Focus recovery with the helper. Take a final layout photograph and retain a rollback route.
 
 ## Apple sources checked
@@ -61,3 +61,9 @@ For a supervised Guided Access trial only: Settings > Accessibility > Guided Acc
 [7] https://support.apple.com/en-au/guide/iphone/iph3ff83f3b1/18.0/ios/18.0 and https://support.apple.com/en-au/126533 — restrictions and Screen Time passcode.
 
 [8] https://support.apple.com/guide/assistive-access-iphone/dev473e94873/ios — differences in emergency, calls and permissions.
+
+## Privacy and release acceptance
+
+The public source/template contains familiar first-name labels but no current personal destinations. Device-local profile storage is not a vault; trusted hosting code can read it. The old public Git history/main and earlier host deployments require separate containment. See [PRIVACY_AND_HOSTING.md](PRIVACY_AND_HOSTING.md).
+
+Reimport the private backup in the installed app if site storage is cleared. Keep the backup private and never add personal numbers to a URL or PR. The blank public template can be imported to disable personal destinations. During any problem, leave the old native shortcuts and contacts in place and use native Phone/SOS. No test call to 000.

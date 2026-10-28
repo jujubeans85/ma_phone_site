@@ -1,0 +1,10 @@
+[build]
+  command = "node --test tests/*.test.cjs && node scripts/build.mjs"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+# Use the same blank-template build for previews and production.
+# _headers is copied into dist for both Git and manual deployments.
+# No SPA rewrite: unknown files, archives, profiles and QA paths must 404.
